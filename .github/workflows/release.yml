@@ -97,7 +97,15 @@ jobs:
       # statically linked via XD3_LZMA_FETCH, and armor (BLAKE3) is statically
       # linked, so the tools need no system libraries at runtime.
       - name: Configure
-        run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DXD3_LZMA_FETCH=ON -DXD3_BUILD_TESTS=OFF
+        shell: bash
+        run: |
+          EXTRA_ARGS=""
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            EXTRA_ARGS="-DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded"
+          elif [ "$RUNNER_OS" == "Linux" ]; then
+            EXTRA_ARGS="-DCMAKE_EXE_LINKER_FLAGS=-static"
+          fi
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DXD3_LZMA_FETCH=ON -DXD3_BUILD_TESTS=OFF $EXTRA_ARGS
 
       - name: Build
         run: cmake --build build --config Release -j
